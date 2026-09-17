@@ -82,22 +82,54 @@ def fallback_split(
 
 def split_documents(documents: list[Document]) -> list[Chunk]:
     """
-    Split documents into chunks. ⚠️ REPLACE THE BODY OF THIS IN MILESTONE 3.
+    Split documents into chunks by paragraph boundaries.
 
-    Right now it just calls the fallback. That is the plain, generic behaviour
-    the brief is talking about.
+    Campus_life documents are short posts (180-550 chars) organized into logical
+    paragraphs separated by blank lines. Each paragraph typically covers one idea
+    or fact. Splitting on blank lines keeps related information together and
+    separates distinct topics, which matches the corpus structure better than
+    fixed-size windows.
 
-    When you write your own strategy, set `produced_by` to
-    "chunker.py::split_documents" so your README's Sample Chunks section names
-    the right function. `app.py chunks` prints that string for you.
-
-    Things worth thinking about before you write any code:
-      - Are your documents short posts or long guides?
-      - Is the useful information in one sentence, or spread over a paragraph?
-      - Would splitting on paragraph breaks keep more thoughts intact than
-        splitting on a character count?
+    Title lines (10-50 chars) are combined with their following paragraph to
+    preserve subject context. This avoids creating empty chunks while keeping
+    the title as context within each chunk.
     """
-    return fallback_split(documents)
+    chunks: list[Chunk] = []
+    MIN_CHUNK_SIZE = 100  # Avoid single-sentence title fragments
+
+    for doc in documents:
+        # Split on blank lines (one or more newlines)
+        paragraphs = [p.strip() for p in doc.text.split("\n\n")]
+        paragraphs = [p for p in paragraphs if p]  # Remove empty
+        
+        # Combine small chunks with the next one
+        combined_chunks = []
+        i = 0
+        while i < len(paragraphs):
+            para = paragraphs[i]
+            # If this paragraph is small and there's a next one, combine them
+            if len(para) < MIN_CHUNK_SIZE and i + 1 < len(paragraphs):
+                combined = para + "\n\n" + paragraphs[i + 1]
+                combined_chunks.append(combined)
+                i += 2
+            else:
+                combined_chunks.append(para)
+                i += 1
+
+        # Create Chunk objects
+        for index, text in enumerate(combined_chunks):
+            chunks.append(
+                Chunk(
+                    text=text,
+                    source=doc.source,
+                    index=index,
+                    produced_by="chunker.py::split_documents",
+                )
+            )
+
+    return chunks
+
+
 
 
 def describe(chunks: list[Chunk]) -> str:

@@ -23,8 +23,7 @@ For at least 4 of my 5 test questions, the retrieved chunks include one that
 contains the answer.
 
 **Why this target:**
-<!-- e.g. "One of my questions is about a topic only two documents mention, so
-     I expect that one to be hard." -->
+My questions ask for specific facts (wait times, prices, deadlines) that are typically stated explicitly in the documents. The one harder question — about pass/fail declaration deadline — is a detail mentioned only once in `admin_pass_fail_option.txt`, so missing that one is realistic. Four of five is a reasonable bar for questions this specific.
 
 ---
 
@@ -33,8 +32,7 @@ contains the answer.
 Every answer the system produces names at least one source document.
 
 **Why this target:**
-<!-- Why all five and not four? What about your setup makes that achievable —
-     or what would have to go wrong for it not to be? -->
+The pipeline always includes source citations when answering in-scope questions — `generate.py` formats every chunk as `[from {source}]\n{text}` before sending it to the model. For the system to fail this, the model would have to strip the attribution from its own output. Keeping all five is realistic since the instruction is in the prompt and the sources are visible in the context.
 
 ---
 
@@ -50,12 +48,15 @@ in at least 4 of 5 tries.
      just keep five of them, or the "4 of 5" above has nothing to be 4 of. -->
 
 **Why this target:**
-<!-- What did your distances look like when you set the cutoff in Milestone 4?
-     Was there a clean gap, or did the two groups overlap? -->
+The out-of-scope questions are about unrelated topics (Mongolia's capital, oil changes, World Cup, drug dosing, Rust syntax). The corpus has no content remotely related to these, so distances should be uniformly high. The cutoff is set to separate in-corpus from out-of-corpus, so I expect a clean gap with most out-of-corpus questions clearly above the threshold. Four of five allows for one edge case that happens to score near the boundary.
 
 ---
 
 ## 4. Something about your chunks
+
+Every chunk names its subject without needing a neighbour. In 10 sampled
+chunks, at least 9 contain the dining hall / dorm / course name the facts
+belong to, rather than a bare "it" or "the building".
 
 <!-- YOU WRITE THIS ONE.
 
@@ -72,12 +73,16 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
-
+Each chunk should be interpretable on its own. When a chunk is just "Machines take $1.75 wash", the word "Machines" has no referent unless you read the title or neighbouring text. My chunker combines titles with the paragraph that follows, so chunks should include the hall, dorm, or course name. Nine of ten allows for one edge case (e.g., a title-less chunk from the middle of a document).
 
 
 ---
 
 ## 5. Your choice
+
+No chunk contains facts about more than one topic. Sampled across 10 chunks,
+at least 8 cover a single subject (one dining hall's wait time, or one dorm's
+laundry, but not both).
 
 <!-- YOU WRITE THIS ONE TOO.
 
@@ -90,7 +95,7 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
-
+Chunks that mix topics (wait times + pricing + salad bar + stir-fry station) have bad embeddings because one vector has to represent multiple unrelated ideas. My paragraph-split strategy separates most topics naturally. Eight of ten allows for edge cases where a paragraph unavoidably covers two related ideas (e.g., "Laundry costs $1.75 wash, $1.50 dry" covers two topics but they're the two sides of the same fact).
 
 
 ---

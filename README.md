@@ -21,26 +21,13 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
-
-     Milestone 5. -->
+This system answers questions about student life at a university using the `campus_life` corpus — 88 short posts covering dining halls, dorms, courses, administrative deadlines, and campus services. Questions typically ask for specific facts: wait times, prices, deadlines, or practical advice students share with each other. The system retrieves relevant chunks and generates answers with source citations.
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
+**Approach:** Split on paragraph boundaries (blank lines), not fixed character windows.
 
-<!-- What about YOUR documents made you pick these numbers? Short posts and
-     long sectioned guides don't want the same chunking, and "800 seemed
-     reasonable" earns nothing. Point at something you noticed when you read
-     the documents in Milestone 1.
-
-     If you changed your mind partway through, say so and say why. That's worth
-     more than pretending you got it right first time.
-
-     Milestone 3. -->
+**Rationale:** Campus_life documents are short posts (180–550 characters) where information is naturally organized into paragraphs separated by blank lines. Each paragraph usually covers one topic or fact — wait times in one paragraph, hours and pricing in the next. The fixed 800-character chunker with overlap was designed for long guides and produced 88 chunks from 88 documents (no splitting at all). Splitting on paragraph breaks instead produces 167 chunks that each contain a single idea. Title lines under 100 characters are automatically combined with the paragraph that follows, preserving subject context without creating empty chunks. This strategy keeps related information together and separates distinct topics, which better matches how the documents are actually written.
 
 ## Sample Chunks
 
@@ -53,29 +40,38 @@
 
      Milestone 3. -->
 
-**Chunk 1** — source: `` — produced by: ``
+**Chunk 1** — source: `admin_add_drop_deadline.txt#0` — produced by: `chunker.py::split_documents`
 
 ```
+On the add/drop deadline
+
+You can add a course through the end of the second week. Dropping is a longer window — through the end of week six — but a drop after week two shows as a W on your transcript. Nothing anywhere on the registrar's site says this plainly, and students find out from each other.
 ```
 
-**Chunk 2** — source: `` — produced by: ``
+**Chunk 2** — source: `course_cs_340_exams.txt#1` — produced by: `chunker.py::split_documents`
 
 ```
+Start the term project in week three, not week eight; everyone learns this the hard way.
 ```
 
-**Chunk 3** — source: `` — produced by: ``
+**Chunk 3** — source: `course_stat_150.txt#0` — produced by: `chunker.py::split_documents`
 
 ```
+STAT 150 Applied Statistics
+
+Transferred in last year, so take this with a grain of salt. Format is flipped: watch the recordings, class time is problem sets. Assessment: three equally weighted midterms, no final. No curve, but the lowest midterm is dropped.
 ```
 
-**Chunk 4** — source: `` — produced by: ``
+**Chunk 4** — source: `dining_verrill_street_grill_followup.txt#1` — produced by: `chunker.py::split_documents`
 
 ```
+Also worth saying: one register, so the queue is a single line no matter how busy. Nobody tells you this at orientation.
 ```
 
-**Chunk 5** — source: `` — produced by: ``
+**Chunk 5** — source: `housing_morrow_house.txt#2` — produced by: `chunker.py::split_documents`
 
 ```
+Laundry costs $1.50 wash, $1.25 dry, coin or card. On noise: loud until about 1am on weekends, no enforced quiet hours.
 ```
 
 ## Sample Answer
