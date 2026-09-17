@@ -80,13 +80,19 @@ Laundry costs $1.50 wash, $1.25 dry, coin or card. On noise: loud until about 1a
      visible. Milestone 4. -->
 
 **Question:**
+How long is the lunch wait at Kestrel Commons between 12:15 and 1:00?
 
 **Answer:**
+The wait time at Kestrel Commons between 12:15 and 1:00 is 20 to 25 minutes. 
 
+Source: `dining_kestrel_commons.txt` (and also mentioned in `dining_kestrel_commons_followup.txt`).
+
+Sources retrieved: dining_halden_hall_followup.txt, dining_kestrel_commons.txt, dining_kestrel_commons_followup.txt, dining_north_kitchen_followup.txt, dining_the_ridgeway_cafe_followup.txt
 ```
 ```
 
 **My relevance cutoff:**
+0.6
 
 <!-- The number you set in config.py, and how you got there.
 
@@ -99,7 +105,8 @@ Laundry costs $1.50 wash, $1.25 dry, coin or card. On noise: loud until about 1a
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| How long is the lunch wait
+at Kestrel Commons between 12:15 and 1:00? | Yes | 0.163 |
 
 ## How I Used AI
 
