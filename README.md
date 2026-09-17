@@ -113,8 +113,8 @@ Laundry costs $1.50 wash, $1.25 dry, coin or card. On noise: loud until about 1a
      Milestone 5. -->
 
 **1.**
+I asked Claude to write the chunking function from my notes
 
-**2.**
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
