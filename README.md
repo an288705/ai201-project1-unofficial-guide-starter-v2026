@@ -173,11 +173,11 @@ I asked Claude to write the chunking function from my notes
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunk contains the answer | MET | I checked the chunk in the run |
+| 2 | Every answer names a source | MET | I checked the sources in the run |
+| 3 | Gate stops out-of-corpus questions | MET | I checked the out of scope question results in the run |
+| 4 | Every chunk names its subject without needing a neighbour | MET | I checked the chunk in the run |
+| 5 | No chunk contains facts about more than one topic | MET | I checked the chunk in the run |
 
 ## Diagnoses
 
@@ -199,27 +199,32 @@ I asked Claude to write the chunking function from my notes
 
      Milestone 3. -->
 
+There were no misses
+
 ## The Improvement
 
 **What I changed:**
+There were no misses so I didn't change anything
 
 **Why I picked it:**
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
 
+
 ### Run Log — After
 
 <!-- Same format, same five criteria, three runs each.
      `python run_eval.py --label after` -->
+Same run log
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Every chunk names its subject without needing a neighbour | 9/10 | 10/10 | 10/10 | 10/10 | MET |
+| 5. No chunk contains facts about more than one topic | 8/10 | 10/10 | 10/10 | 10/10 | MET |
 
 **Did it help?**
 
@@ -229,6 +234,7 @@ I asked Claude to write the chunking function from my notes
      tell.
 
      Milestone 4. -->
+There were no misses so I didn't change anything
 
 ## What's Still Broken
 
@@ -239,6 +245,7 @@ I asked Claude to write the chunking function from my notes
      not.
 
      Milestone 5. -->
+There were no misses so nothings broken
 
 ## What I'd Do Differently
 
@@ -246,3 +253,4 @@ I asked Claude to write the chunking function from my notes
      differently, and why?
 
      Milestone 5. -->
+I think I should've made the criteria more difficult. I thought making chunks only containing one topic would be hard, but actually each chunk was able to have exactly what I needed
