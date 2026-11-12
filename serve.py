@@ -112,7 +112,7 @@ def main():
     # can't reach a socket that only accepts connections from inside the
     # container. It is the single most common way a first deploy "succeeds"
     # and is unreachable.
-    port = int(os.getenv("PORT", "5000"))
+    port = int(os.getenv("PORT", "5001"))
 
     # Debug mode reloads on save, which is handy, and prints a console that
     # runs arbitrary code, which is not something to leave switched on where
