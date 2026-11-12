@@ -28,12 +28,58 @@ this file stays the bare shell until then.
 """
 
 import os
+import shutil
+import subprocess
+import asyncio
+import re
+import unicodedata
 
 from flask import Flask, jsonify, request
 
 import config
 
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+pi_executable = os.path.join(PROJECT_DIR, "node_modules", ".bin", "pi")
 app = Flask(__name__)
+
+MAX_QUESTION_LENGTH = 500
+
+# Command substitution, command chaining, pipes and redirects. Ordinary
+# questions never need these; apostrophes, quotes and "?" stay allowed.
+SHELL_INJECTION = re.compile(r"\$\(|\$\{|`|;|&&|\|\||\||[<>]")
+
+
+def sanitize_question(raw):
+    """Clean a user question before it reaches the pi subprocess.
+
+    Returns the cleaned string, or raises ValueError with a message that is
+    safe to show the caller. The question is passed as an argv entry (never
+    through a shell), so shell metacharacters are not the danger; the real
+    ones are a question that pi parses as a command-line flag, control
+    characters, and unbounded length.
+    """
+    if not isinstance(raw, str):
+        raise ValueError("question must be a string")
+
+    text = unicodedata.normalize("NFKC", raw)
+    # Drop control/format characters (null bytes, escapes, zero-width, bidi
+    # overrides); keep ordinary whitespace, then collapse it to single spaces.
+    text = "".join(
+        " " if ch.isspace() else ch
+        for ch in text
+        if ch.isspace() or unicodedata.category(ch) not in ("Cc", "Cf", "Cs")
+    )
+    text = re.sub(r"\s+", " ", text).strip()
+    # A leading "-" would be read by pi as an option, not as the prompt.
+    text = text.lstrip("-").strip()
+
+    if not text:
+        raise ValueError("question is empty after cleaning")
+    if SHELL_INJECTION.search(text):
+        raise ValueError("question contains characters that look like a shell command")
+    if len(text) > MAX_QUESTION_LENGTH:
+        raise ValueError(f"question is too long (max {MAX_QUESTION_LENGTH} characters)")
+    return text
 
 
 @app.get("/health")
@@ -64,7 +110,7 @@ def health():
 
 
 @app.post("/ask")
-def ask():
+async def ask():
     """One question in, one grounded answer out.
 
     A refused question is a 200, not an error. The gate refusing is your
@@ -74,13 +120,13 @@ def ask():
     from app import ask_pipeline
 
     payload = request.get_json(silent=True) or {}
-    question = (payload.get("question") or "").strip()
-
-    if not question:
+    try:
+        question = sanitize_question(payload.get("question") or "")
+    except ValueError as exc:
         return (
             jsonify(
                 {
-                    "error": "Send JSON with a question in it, like "
+                    "error": f"{exc}. Send JSON with a question in it, like "
                     '{"question": "is the housing lottery random?"}'
                 }
             ),
@@ -88,14 +134,30 @@ def ask():
         )
 
     try:
-        outcome = ask_pipeline(question, corpus=config.CORPUS)
+        #outcome = ask_pipeline(question, corpus=config.CORPUS)
+        outcome = {
+            "refused":"",
+            "sources":"",
+            "best_distance":"",
+            "threshold":""
+        }
+        process = await asyncio.create_subprocess_exec(
+                pi_executable, "-p", question,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+        stdout, stderr = await process.communicate()
+        if process.returncode != 0:
+            return jsonify({"error": stderr.decode().strip()}), 500
+        answer = stdout.decode().strip()
     except Exception as exc:  # noqa: BLE001 — a reader gets this, not a traceback
         return jsonify({"error": f"{type(exc).__name__}: {exc}"}), 500
 
     return jsonify(
         {
             "question": question,
-            "answer": outcome["answer"],
+            "answer": answer,
             "refused": outcome["refused"],
             "sources": outcome["sources"],
             "best_distance": round(outcome["best_distance"], 4),
@@ -103,6 +165,27 @@ def ask():
             "corpus": config.CORPUS,
         }
     )
+
+@app.get("/debug/check-pi")
+def check_pi():
+    # pi is a local npm install (node_modules/.bin), not on PATH, so run it
+    # through npx from the project directory.
+    npx = shutil.which("npx")
+    if not npx:
+        return jsonify({"status": "not_found", "message": "'npx' is not on the server's PATH."}), 500
+    try:
+        result = subprocess.run(
+            [npx, "pi", "--version"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        return jsonify({"status": "error", "message": "'npx pi --version' timed out."}), 500
+    if result.returncode == 0:
+        return jsonify({"status": "found", "command": "npx pi --version", "version": result.stdout.strip()})
+    return jsonify({"status": "error", "message": result.stderr.strip()}), 500
 
 
 def main():
